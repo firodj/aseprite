@@ -186,14 +186,54 @@ if(ENABLE_ASEPRITE_EXE)
       main/settings.manifest)
   endif()
 
-  add_executable(${main_target}
-    main/main.cpp
-    ${main_resources})
-  if(ENABLE_UI)
-    if(WIN32)
-      set_target_properties(${main_target} PROPERTIES WIN32_EXECUTABLE true)
+  if (APPLE)
+    if(NOT IOS)
+    set(ICON_PATH_ABS ${CMAKE_SOURCE_DIR}/data/icons/ext.ico)
+      set_source_files_properties(${ICON_PATH_ABS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+
+      add_executable(${main_target} MACOSX_BUNDLE
+        main/main.cpp
+        ${ICON_PATH_ABS}
+        ${main_resources})
+
+      set_target_properties(${main_target} PROPERTIES
+        BUNDLE True
+        MACOSX_BUNDLE_GUI_IDENTIFIER org.aseprite.aseprite
+        MACOSX_BUNDLE_BUNDLE_NAME ${main_target}
+        MACOSX_BUNDLE_BUNDLE_VERSION "0.1"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "0.1"
+        #MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/customtemplate.plist.in
+     )
+
+      install(TARGETS ${main_target}
+        BUNDLE DESTINATION bin)
+
+      install(DIRECTORY ../data
+        BUNDLE DESTINATION share/aseprite)
+
+      # Fix codesign "-"
+      if(CMAKE_GENERATOR STREQUAL Xcode)
+        set_target_properties(${main_target} PROPERTIES XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "")
+      endif()
     endif()
+  else()
+    add_executable(${main_target}
+      main/main.cpp
+      ${main_resources})
+    if(ENABLE_UI)
+      if(WIN32)
+        set_target_properties(${main_target} PROPERTIES WIN32_EXECUTABLE true)
+      endif()
+    endif()
+
+    install(TARGETS ${main_target}
+      RUNTIME DESTINATION bin)
+
+    install(DIRECTORY ../data
+      DESTINATION share/aseprite)
   endif()
+
   set_target_properties(${main_target} PROPERTIES LINK_FLAGS "${LAF_BACKEND_LINK_FLAGS}")
   target_link_libraries(${main_target} app-lib)
   add_dependencies(${main_target} copy_data)
@@ -202,12 +242,6 @@ if(ENABLE_ASEPRITE_EXE)
     set_target_properties(${main_target} PROPERTIES LINK_FLAGS
       ${LAF_OS_BACKEND_LINK_FLAGS})
   endif()
-
-  install(TARGETS ${main_target}
-    RUNTIME DESTINATION bin)
-
-  install(DIRECTORY ../data
-    DESTINATION share/aseprite)
 endif()
 
 ######################################################################
