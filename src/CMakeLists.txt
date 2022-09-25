@@ -188,9 +188,11 @@ if(ENABLE_ASEPRITE_EXE)
 
   if (APPLE)
     if(NOT IOS)
-    set(ICON_PATH_ABS ${CMAKE_SOURCE_DIR}/data/icons/ext.ico)
+      set(ICON_PATH_ABS ${CMAKE_BINARY_DIR}/AppIcon.icns)
+      set(MACOSX_BUNDLE_ICON_FILE "AppIcon.icns")
       set_source_files_properties(${ICON_PATH_ABS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-
+      set(MACOSX_BUNDLE_BUNDLE_NAME Aseprite)
+      set(MACOSX_BUNDLE_GUI_IDENTIFIER org.aseprite.aseprite)
 
       add_executable(${main_target} MACOSX_BUNDLE
         main/main.cpp
@@ -199,12 +201,13 @@ if(ENABLE_ASEPRITE_EXE)
 
       set_target_properties(${main_target} PROPERTIES
         BUNDLE True
-        MACOSX_BUNDLE_GUI_IDENTIFIER org.aseprite.aseprite
-        MACOSX_BUNDLE_BUNDLE_NAME ${main_target}
-        MACOSX_BUNDLE_BUNDLE_VERSION "0.1"
-        MACOSX_BUNDLE_SHORT_VERSION_STRING "0.1"
-        #MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/customtemplate.plist.in
-     )
+        MACOSX_BUNDLE_BUNDLE_VERSION "1.2.40"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.2.40"
+      )
+
+      add_custom_command(TARGET ${main_target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${DATA_OUTPUT_DIR} ${CMAKE_BINARY_DIR}/bin/${main_target}.app/Contents/MacOS/data
+      )
 
       install(TARGETS ${main_target}
         BUNDLE DESTINATION bin)
